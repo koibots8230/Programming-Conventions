@@ -1,5 +1,9 @@
 # Programming Conventions
 
+## Why Conventions?
+
+Having conventions allows us to make clean, uniform code that integrates seamlessly, even if 5 different people made different parts. It also allows for people to become familiar with the code quicker and easier, as everything is nice and consistent. It also helps to reduce errors created by differing programming styles.
+
 ## Style
 
 ### Naming

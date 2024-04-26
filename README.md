@@ -43,7 +43,7 @@ Separate constants into different sub classes for each subsystem. Inside the sub
 
 Subclasses should be ordered in some logical manner. Additionally, there will be a RobotConstants sub class for universal robot values (clock speed, logging stuff, etc.).
 
-## Comments
+### Comments
 
 General rule of thumb, don't use comments. Your code should be able to explain itself. If you have some complicated math thing or other, fine. Otherwise, avoid comments
 

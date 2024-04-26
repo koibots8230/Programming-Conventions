@@ -29,9 +29,9 @@ public class RobotContainer implements Logged {
     private final TankDrive TankDrive;
     private final Intake Intake;
 
-    public RobotContainer() {
-        TankDrive = new TankDrive();
-        Intake = new Intake();
+    public RobotContainer(boolean isReal) {
+        TankDrive = new TankDrive(isReal);
+        Intake = new Intake(isReal);
 
         Monologue.setupMonologue(
                 this, "Robot", RobotConstants.LOGGING_FILE_ONLY, RobotConstants.LAZY_LOGGING);

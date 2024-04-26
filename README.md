@@ -72,4 +72,6 @@ Whenever representing a value that has a unit, use WPILib's [unit library](https
 
 ## Example
 
-This repository also contains an example project showcasing all of these conventions. Look [here](https://github.com/koibots8230/Programming-Conventions/tree/main/ExampleProject)
+This repository also contains an example project showcasing all of these conventions. Look [here](https://github.com/koibots8230/Programming-Conventions/tree/main/ExampleProject). 
+
+*Note:* This project does make use of comments to highlight certain features. **Don't do that in your normal code.**

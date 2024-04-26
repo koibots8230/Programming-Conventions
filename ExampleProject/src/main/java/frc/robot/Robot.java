@@ -16,7 +16,7 @@ public class Robot extends TimedRobot implements Logged {
 
     @Override
     public void robotInit() {
-        m_robotContainer = new RobotContainer();
+        m_robotContainer = new RobotContainer(Robot.isReal());
     }
 
     @Override

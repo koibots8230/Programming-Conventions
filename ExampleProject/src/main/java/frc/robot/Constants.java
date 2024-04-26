@@ -13,8 +13,12 @@ public class Constants {
 
         public static final Measure<Velocity<Distance>> MAX_VELOCITY = MetersPerSecond.of(4);
 
-        public static final PIDConstants FEEDBACK = new PIDConstants(0.005, 0, 0);
-        public static final FeedForwardConstants FEEDFORWARD = new FeedForwardConstants(0, 0.005);
+        public static final PIDConstants FEEDBACK_REAL = new PIDConstants(0.005, 0, 0);
+        public static final FeedForwardConstants FEEDFORWARD_REAL =
+                new FeedForwardConstants(0, 0.005);
+
+        public static final PIDConstants FEEDBACK_SIM = new PIDConstants(1.5, 0, 0);
+        public static final FeedForwardConstants FEEDFORWARD_SIM = new FeedForwardConstants(0, 10);
 
         public static final MotorConstants MOTOR_CONSTANTS = new MotorConstants(false, 60);
 
@@ -30,12 +34,21 @@ public class Constants {
     public class IntakeConstants {
         public static final Measure<Velocity<Angle>> INTAKE_SPEED = RPM.of(600);
 
+        public static final PIDConstants FEEDBACK_REAL = new PIDConstants(0.005, 0, 0);
+        public static final FeedForwardConstants FEEDFORWARD_REAL =
+                new FeedForwardConstants(0, 0.005);
+
+        public static final PIDConstants FEEDBACK_SIM = new PIDConstants(1.5, 0, 0);
+        public static final FeedForwardConstants FEEDFORWARD_SIM = new FeedForwardConstants(0, 10);
+
         public static final MotorConstants MOTOR_CONSTANTS = new MotorConstants(false, 60);
 
         public static final int MOTOR_PORT = 5;
     }
 
     public class RobotConstants {
+        public static final Measure<Time> PERIODIC_LOOP = Milliseconds.of(20);
+
         public static final boolean LOGGING_FILE_ONLY = false;
         public static final boolean LAZY_LOGGING = false;
 

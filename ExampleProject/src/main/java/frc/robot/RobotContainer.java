@@ -6,36 +6,58 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RPM;
 
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.TankDrive;
+import monologue.Logged;
+import monologue.Monologue;
 
-public class RobotContainer {
+public class RobotContainer implements Logged {
 
-    private final XboxController controller = new XboxController(0);
+    private final XboxController driveController = new XboxController(0);
+    private final GenericHID operatorPad = new GenericHID(1);
 
-    private final TankDrive tankDrive = new TankDrive();
-    private final Intake intake = new Intake();
+    // These are capitalized just to make the logs look nicer
+    private final TankDrive TankDrive;
+    private final Intake Intake;
 
     public RobotContainer() {
+        TankDrive = new TankDrive();
+        Intake = new Intake();
+
+        Monologue.setupMonologue(
+                this, "Robot", RobotConstants.LOGGING_FILE_ONLY, RobotConstants.LAZY_LOGGING);
+
         configureBindings();
     }
 
-    private void configureBindings() {
-        tankDrive.setDefaultCommand(
-                new DriveCommand(
-                        tankDrive, () -> controller.getLeftY(), () -> controller.getRightY()));
+    public void updateLogs() {
+        Monologue.updateAll();
+    }
 
-        final Trigger intakeTrigger = new Trigger(() -> controller.getRightTriggerAxis() > 0.15);
+    private void configureBindings() {
+
+        // =================================Driver=================================
+
+        // Note how the TankDrive subsystem instance is passed to DriveCommand
+        TankDrive.setDefaultCommand(
+                new DriveCommand(
+                        TankDrive, () -> driveController.getLeftY(), () -> driveController.getRightY()));
+
+        // =================================Operator=================================
+
+        final Trigger intakeTrigger = new Trigger(() -> operatorPad.getRawButton(1));
         intakeTrigger.onTrue(
-                new InstantCommand(() -> intake.setVelocity(IntakeConstants.INTAKE_SPEED), intake));
-        intakeTrigger.onTrue(new InstantCommand(() -> intake.setVelocity(RPM.of(0)), intake));
+                new InstantCommand(() -> Intake.setVelocity(IntakeConstants.INTAKE_SPEED), Intake));
+        intakeTrigger.onTrue(new InstantCommand(() -> Intake.setVelocity(RPM.of(0)), Intake));
     }
 
     public Command getAutonomousCommand() {

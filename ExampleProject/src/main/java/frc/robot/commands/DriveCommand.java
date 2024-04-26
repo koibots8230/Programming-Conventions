@@ -18,6 +18,8 @@ public class DriveCommand extends Command {
         this.tankDrive = tankDrive;
         this.leftStick = leftStick;
         this.rightStick = rightStick;
+
+        addRequirements(tankDrive);
     }
 
     @Override

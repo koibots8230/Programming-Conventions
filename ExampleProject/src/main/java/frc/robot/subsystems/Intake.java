@@ -21,6 +21,10 @@ public class Intake extends SubsystemBase implements Logged {
 
     private final SparkPIDController pidController;
 
+    @Log private double current = 0;
+    @Log private double velocity = 0;
+    @Log private double appliedVoltage = 0;
+
     public Intake() {
         motor = new CANSparkMax(IntakeConstants.MOTOR_PORT, MotorType.kBrushless);
 
@@ -34,7 +38,9 @@ public class Intake extends SubsystemBase implements Logged {
 
     @Override
     public void periodic() {
-        this.log("current", motor.getAppliedOutput());
+        current = motor.getOutputCurrent();
+        velocity = this.getVelocity();
+        appliedVoltage = motor.getAppliedOutput() * motor.getBusVoltage();
     }
 
     // =========================Velocity=========================
@@ -43,7 +49,6 @@ public class Intake extends SubsystemBase implements Logged {
         pidController.setReference(velocity.in(RPM), ControlType.kVelocity);
     }
 
-    @Log
     public double getVelocity() {
         return encoder.getVelocity();
     }

@@ -11,7 +11,8 @@ import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.IntakeConstants;
-import monologue.Annotations.Log;
+
+import monologue.Annotations.*;
 import monologue.Logged;
 
 public class TankDrive extends SubsystemBase implements Logged {
@@ -27,6 +28,12 @@ public class TankDrive extends SubsystemBase implements Logged {
 
     private final SparkPIDController leftPID;
     private final SparkPIDController rightPID;
+
+    @Log private double leftVelocity = 0;
+    @Log private double leftPosition = 0;
+
+    @Log private double rightVelocity = 0;
+    @Log private double rightPosition = 0;
 
     public TankDrive() {
         frontLeftMotor = new CANSparkMax(DriveConstants.FRONT_LEFT_MOTOR, MotorType.kBrushless);
@@ -74,10 +81,26 @@ public class TankDrive extends SubsystemBase implements Logged {
 
     @Override
     public void periodic() {
-        this.log("frontLeftMotorCurrent", frontLeftMotor.getAppliedOutput());
-        this.log("backLeftMotorCurrent", backLeftMotor.getAppliedOutput());
-        this.log("frontRightMotorCurrent", frontRightMotor.getAppliedOutput());
-        this.log("backRightMotorCurrent", backRightMotor.getAppliedOutput());
+        this.log("Front Left/Current", frontLeftMotor.getOutputCurrent());
+        this.log("Back Left/Current", backLeftMotor.getOutputCurrent());
+        this.log("Front Right/Current", frontRightMotor.getOutputCurrent());
+        this.log("Back Right/Current", backRightMotor.getOutputCurrent());
+
+        this.log("Front Left/Temperature", frontLeftMotor.getMotorTemperature());
+        this.log("Back Left/Temperature", backLeftMotor.getMotorTemperature());
+        this.log("Front Right/Temperature", frontRightMotor.getMotorTemperature());
+        this.log("Back Right/Temperature", backRightMotor.getMotorTemperature());
+
+        this.log("Front Left/Applied Voltage", frontLeftMotor.getAppliedOutput() * frontLeftMotor.getBusVoltage());
+        this.log("Back Left/Applied Voltage", backLeftMotor.getAppliedOutput() * backLeftMotor.getBusVoltage());
+        this.log("Front Right/Applied Voltage", frontRightMotor.getAppliedOutput() * frontRightMotor.getBusVoltage());
+        this.log("Back Right/Applied Voltage", backRightMotor.getAppliedOutput() * backRightMotor.getBusVoltage());
+        
+        leftVelocity = this.getVelocity()[0];
+        rightVelocity = this.getVelocity()[1];
+
+        leftPosition = this.getPosition()[0];
+        rightPosition = this.getPosition()[1];
     }
 
     // =========================Velocity=========================
@@ -88,14 +111,12 @@ public class TankDrive extends SubsystemBase implements Logged {
         rightPID.setReference(rightVelocity.in(MetersPerSecond), ControlType.kVelocity);
     }
 
-    @Log
     public double[] getVelocity() {
         return new double[] {leftEncoder.getVelocity(), rightEncoder.getVelocity()};
     }
 
     // =========================Position=========================
 
-    @Log
     public double[] getPosition() {
         return new double[] {leftEncoder.getPosition(), rightEncoder.getPosition()};
     }

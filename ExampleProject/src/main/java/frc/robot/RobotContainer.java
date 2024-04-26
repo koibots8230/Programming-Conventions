@@ -50,7 +50,9 @@ public class RobotContainer implements Logged {
         // Note how the TankDrive subsystem instance is passed to DriveCommand
         TankDrive.setDefaultCommand(
                 new DriveCommand(
-                        TankDrive, () -> driveController.getLeftY(), () -> driveController.getRightY()));
+                        TankDrive,
+                        () -> driveController.getLeftY(),
+                        () -> driveController.getRightY()));
 
         // =================================Operator=================================
 

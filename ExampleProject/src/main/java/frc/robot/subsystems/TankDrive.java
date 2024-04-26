@@ -11,7 +11,6 @@ import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.IntakeConstants;
-
 import monologue.Annotations.*;
 import monologue.Logged;
 
@@ -91,11 +90,19 @@ public class TankDrive extends SubsystemBase implements Logged {
         this.log("Front Right/Temperature", frontRightMotor.getMotorTemperature());
         this.log("Back Right/Temperature", backRightMotor.getMotorTemperature());
 
-        this.log("Front Left/Applied Voltage", frontLeftMotor.getAppliedOutput() * frontLeftMotor.getBusVoltage());
-        this.log("Back Left/Applied Voltage", backLeftMotor.getAppliedOutput() * backLeftMotor.getBusVoltage());
-        this.log("Front Right/Applied Voltage", frontRightMotor.getAppliedOutput() * frontRightMotor.getBusVoltage());
-        this.log("Back Right/Applied Voltage", backRightMotor.getAppliedOutput() * backRightMotor.getBusVoltage());
-        
+        this.log(
+                "Front Left/Applied Voltage",
+                frontLeftMotor.getAppliedOutput() * frontLeftMotor.getBusVoltage());
+        this.log(
+                "Back Left/Applied Voltage",
+                backLeftMotor.getAppliedOutput() * backLeftMotor.getBusVoltage());
+        this.log(
+                "Front Right/Applied Voltage",
+                frontRightMotor.getAppliedOutput() * frontRightMotor.getBusVoltage());
+        this.log(
+                "Back Right/Applied Voltage",
+                backRightMotor.getAppliedOutput() * backRightMotor.getBusVoltage());
+
         leftVelocity = this.getVelocity()[0];
         rightVelocity = this.getVelocity()[1];
 

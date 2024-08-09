@@ -34,7 +34,7 @@ Triggers should be separated into two main sections marked by comment headers fo
 <h4>Constants</h4>
 
 Separate constants into different sub classes for each subsystem. Inside the subclass, things should generally be ordered as follows:
-1. Speeds
+1. Setpoints
 2. Control stuff (PID/FF, kinematics, etc.)
 3. Sensor stuff (conversion factors, etc.)
 4. General motor constants (current limit, inverted, etc.)

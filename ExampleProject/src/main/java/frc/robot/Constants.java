@@ -42,8 +42,13 @@ public class Constants {
         public static final FeedForwardConstants FEEDFORWARD_SIM = new FeedForwardConstants(0, 10);
 
         public static final MotorConstants MOTOR_CONSTANTS = new MotorConstants(false, 60);
+        public static final PIDConstants MOTOR_PID = new PIDConstants(0.01, 0.0, 0.0);
+        public static final Measure<Velocity<Angle>> MAX_VELOCITY = RPM.of(1200); 
+        public static final Measure<Velocity<Angle>> MAX_ACCELERATION = RPM.of(1200); 
 
         public static final int MOTOR_PORT = 5;
+
+        public static final double AllowedRange = 0.1;
     }
 
     public class RobotConstants {

@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.units.*;
 import frc.lib.util.FeedForwardConstants;
+import frc.lib.util.FeedforwardGains;
 import frc.lib.util.MotorConstants;
 import frc.lib.util.PIDConstants;
 
@@ -49,7 +50,25 @@ public class Constants {
         public static final int MOTOR_PORT = 5;
 
         public static final double AllowedRange = 0.1;
+    }   
+    
+    public static class ElevatorConstants {
+
+        public static final double kMaxVelocityRadPerSecond = 0;
+        public static final double kMaxAccelerationRadPerSecSquared = 0;
+        public static final double kArmOffsetRads = 0;
+        public static final int LEFT_MOTOR_PORT = 0;
+        public static final int RIGHT_MOTOR_PORT = 0;
+        // Tune kP
+        public static final PIDConstants PID = new PIDConstants(0.0, 0.0, 0.0);
+        public static final FeedforwardGains FEEDFORWARD_GAINS = new FeedforwardGains.Builder()
+            .ks(0.0)
+            .kv(0.0)
+            .ka(0.0)
+            .kg(0.0)
+            .build();
     }
+
 
     public class RobotConstants {
         public static final Measure<Time> PERIODIC_LOOP = Milliseconds.of(20);

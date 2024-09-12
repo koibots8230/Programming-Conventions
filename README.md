@@ -70,6 +70,8 @@ Whenever representing a value that has a unit, use WPILib's [unit library](https
 - Voltage: Volts
 - Mass: Kilograms
 
+An exception to using unit library is rotation/angle, which we use Rotation2ds for, and positions, which we use Pose2ds for.
+
 ## Example
 
 This repository also contains an example project showcasing all of these conventions. Look [here](https://github.com/koibots8230/Programming-Conventions/tree/main/ExampleProject). 

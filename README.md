@@ -72,6 +72,10 @@ Whenever representing a value that has a unit, use WPILib's [unit library](https
 
 An exception to using unit library is rotation/angle, which we use Rotation2ds for, and positions, which we use Pose2ds for.
 
+## Command Factories
+
+When making commands, use the [command factory](https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html) framework.
+
 ## Example
 
 This repository also contains an example project showcasing all of these conventions. Look [here](https://github.com/koibots8230/Programming-Conventions/tree/main/ExampleProject). 

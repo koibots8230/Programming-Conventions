@@ -4,9 +4,15 @@
 
 Having conventions allows us to make clean, uniform code that integrates seamlessly, even if 5 different people made different parts. It also allows for people to become familiar with the code quicker and easier, as everything is nice and consistent. It also helps to reduce errors created by differing programming styles.
 
+## Disclaimer
+
+This is a living document. Programmers are expected to check for changes semi-regularly, as well as before making any pull requests.
+
 ## Style
 
 ### Naming
+
+<h4>In Code</h4>
 
 When naming things, use clear, concise names that describe what it represents. Someone should be able to look at it and instantly know what it does. Avoid making names unnecessarily long though. 
 
@@ -20,6 +26,14 @@ When creating a name for something, format it in accordance with this table:
 |Method|lowerCamelCase|
 |Parameter|lowerCamelCase|
 |Constant|SCREAMING_CASE|
+
+<h4>Repositories</h4>
+
+In the case of naming repositories in the github organization, please capitalize the first letter of every word and use dashes for spaces. For robot repositories, the name should consist of the robot name then the year, with a dash in between. In the case that a robot name has not been created, the name of the game should be used until a name is made. Examples:
+
+- Generic-Repository
+- Reefscape-2025 (until a robot name is created)
+- RobotName-2025
 
 ### Ordering
 

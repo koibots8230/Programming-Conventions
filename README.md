@@ -35,6 +35,10 @@ In the case of naming repositories in the github organization, please capitalize
 - Reefscape-2025 (until a robot name is created)
 - RobotName-2025
 
+<h4>Branch Naming</h4>
+
+Branch names on git should contain **both** the name of the subsystem they are working with, as well as what stage in development it is (ex: InitialElevator)
+
 ### Ordering
 
 <h4>Methods</h4>

@@ -6,60 +6,53 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RPM;
 
-import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.RobotConstants;
-import frc.robot.commands.DriveCommand;
+import frc.robot.Constants.TurretConstants;
+import frc.robot.commands.IntakeCommands;
+import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.TankDrive;
-import monologue.Logged;
-import monologue.Monologue;
+import frc.robot.subsystems.Turret;
 
-public class RobotContainer implements Logged {
+@Logged
+public class RobotContainer {
 
-    private final XboxController driveController = new XboxController(0);
-    private final GenericHID operatorPad = new GenericHID(1);
+    @NotLogged private final CommandXboxController driveController = new CommandXboxController(0);
 
-    // These are capitalized just to make the logs look nicer
-    private final TankDrive TankDrive;
-    private final Intake Intake;
+    private final TankDrive tankDrive;
+    private final Intake intake;
+    private final Indexer indexer;
+    private final Turret turret;
 
-    public RobotContainer(boolean isReal) {
-        TankDrive = new TankDrive(isReal);
-        Intake = new Intake(isReal);
-
-        Monologue.setupMonologue(
-                this, "Robot", RobotConstants.LOGGING_FILE_ONLY, RobotConstants.LAZY_LOGGING);
+    public RobotContainer() {
+        tankDrive = new TankDrive();
+        intake = new Intake();
+        indexer = new Indexer();
+        turret = new Turret();
 
         configureBindings();
     }
 
-    public void updateLogs() {
-        Monologue.updateAll();
-    }
-
     private void configureBindings() {
+        tankDrive.setDefaultCommand(tankDrive.driveCommand(
+            driveController::getLeftY, driveController::getRightY));
 
-        // =================================Driver=================================
+        Trigger intakeTrigger = driveController.axisGreaterThan(XboxController.Axis.kRightTrigger.value, 0.15);
+        intakeTrigger.onTrue(IntakeCommands.autoIntake(intake, indexer));
+        intakeTrigger.onFalse(Commands.parallel(
+            intake.setVelocityCommand(RPM.of(0)),
+            indexer.setVelocityCommand(RPM.of(0))
+        ));
 
-        // Note how the TankDrive subsystem instance is passed to DriveCommand
-        TankDrive.setDefaultCommand(
-                new DriveCommand(
-                        TankDrive,
-                        () -> driveController.getLeftY(),
-                        () -> driveController.getRightY()));
-
-        // =================================Operator=================================
-
-        final Trigger intakeTrigger = new Trigger(() -> operatorPad.getRawButton(1));
-        intakeTrigger.onTrue(
-                new InstantCommand(() -> Intake.setVelocity(IntakeConstants.INTAKE_SPEED), Intake));
-        intakeTrigger.onTrue(new InstantCommand(() -> Intake.setVelocity(RPM.of(0)), Intake));
+        Trigger moveTurret = driveController.a();
+        moveTurret.onTrue(turret.setPositionCommand(TurretConstants.POSITION_TWO));
+        moveTurret.onFalse(turret.setPositionCommand(TurretConstants.POSITION_ONE));
     }
 
     public Command getAutonomousCommand() {

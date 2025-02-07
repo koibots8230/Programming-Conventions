@@ -2,203 +2,221 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.*;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.NotLogged;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.units.measure.*;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.RobotConstants;
-import monologue.Annotations.*;
-import monologue.Logged;
+import java.util.function.DoubleSupplier;
 
-public class TankDrive extends SubsystemBase implements Logged {
+@Logged
+public class TankDrive extends SubsystemBase {
 
-    private CANSparkMax frontLeftMotor;
-    private CANSparkMax backLeftMotor;
+    // Same stuff, just with two sets of two motors being controlled,
+    // as well as a gyro and odometry
 
-    private DCMotorSim simLeft;
+    @NotLogged private final SparkMax frontLeftMotor;
+    @NotLogged private final SparkMax backLeftMotor;
 
-    private CANSparkMax frontRightMotor;
-    private CANSparkMax backRightMotor;
+    @NotLogged private final SparkMax frontRightMotor;
+    @NotLogged private final SparkMax backRightMotor;
 
-    private DCMotorSim simRight;
+    @NotLogged private final SparkMaxConfig frontLeftConfig;
+    @NotLogged private final SparkMaxConfig backLeftConfig;
 
-    private RelativeEncoder leftEncoder;
-    private RelativeEncoder rightEncoder;
+    @NotLogged private final SparkMaxConfig frontRightConfig;
+    @NotLogged private final SparkMaxConfig backRightConfig;
 
-    private SparkPIDController leftPID;
-    private SparkPIDController rightPID;
+    @NotLogged private final RelativeEncoder leftEncoder;
+    @NotLogged private final RelativeEncoder rightEncoder;
 
-    private PIDController simLeftFeedback;
-    private SimpleMotorFeedforward simLeftFeedforward;
+    @NotLogged private final SparkClosedLoopController leftPID;
+    @NotLogged private final SparkClosedLoopController rightPID;
 
-    private PIDController simRightFeedback;
-    private SimpleMotorFeedforward simRightFeedforward;
+    @NotLogged private final Pigeon2 gyro;
 
-    // Monolouge doesn't work with measures as of right now, so we can't use them here
-    
-    @Log private double leftVelocity = 0;
-    @Log private double leftPosition = 0;
+    @NotLogged private final DifferentialDriveOdometry odometry;
 
-    @Log private double rightVelocity = 0;
-    @Log private double rightPosition = 0;
+    private Pose2d estimatedPose;
 
-    @Log private double leftSetpoint = 0;
-    @Log private double rightSetpoint = 0;
+    private final MutCurrent frontLeftCurrent;
+    private final MutCurrent backLeftCurrent;
+    private final MutCurrent frontRightCurrent;
+    private final MutCurrent backRightCurrent;
 
-    @Log private double leftAppliedVolts = 0;
-    @Log private double rightAppliedVolts = 0;
+    private final MutLinearVelocity leftVelocity;
+    private final MutDistance leftPosition;
 
-    private final boolean isReal;
+    private final MutLinearVelocity rightVelocity;
+    private final MutDistance rightPosition;
 
-    public TankDrive(boolean isReal) {
-        this.isReal = isReal;
-        if (isReal) {
-            frontLeftMotor = new CANSparkMax(DriveConstants.FRONT_LEFT_MOTOR, MotorType.kBrushless);
-            backLeftMotor = new CANSparkMax(DriveConstants.BACK_LEFT_MOTOR, MotorType.kBrushless);
+    private final MutLinearVelocity leftSetpoint;
+    private final MutLinearVelocity rightSetpoint;
 
-            frontLeftMotor.setInverted(IntakeConstants.MOTOR_CONSTANTS.inverted);
-            frontLeftMotor.setSmartCurrentLimit(IntakeConstants.MOTOR_CONSTANTS.currentLimit);
-            backLeftMotor.setInverted(IntakeConstants.MOTOR_CONSTANTS.inverted);
-            backLeftMotor.setSmartCurrentLimit(IntakeConstants.MOTOR_CONSTANTS.currentLimit);
+    private final MutVoltage leftAppliedVolts;
+    private final MutVoltage rightAppliedVolts;
 
-            leftEncoder = frontLeftMotor.getEncoder();
+    @NotLogged private final MutDistance simLeftPosition;
+    @NotLogged private final MutDistance simRightPosition;
 
-            leftEncoder.setPositionConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters));
-            leftEncoder.setVelocityConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters));
+    public TankDrive() {
+        frontLeftMotor = new SparkMax(DriveConstants.FRONT_LEFT_MOTOR, MotorType.kBrushless);
+        backLeftMotor = new SparkMax(DriveConstants.BACK_LEFT_MOTOR, MotorType.kBrushless);
 
-            leftPID = frontLeftMotor.getPIDController();
+        frontLeftConfig = new SparkMaxConfig();
+        backLeftConfig = new SparkMaxConfig();
 
-            leftPID.setP(DriveConstants.FEEDBACK_REAL.kP);
-            leftPID.setI(DriveConstants.FEEDBACK_REAL.kI);
-            leftPID.setD(DriveConstants.FEEDBACK_REAL.kD);
-            leftPID.setFF(DriveConstants.FEEDFORWARD_REAL.kV);
+        frontLeftConfig.inverted(DriveConstants.FRONT_LEFT_MOTOR_CONSTANTS.inverted);
+        frontLeftConfig.smartCurrentLimit(DriveConstants.FRONT_LEFT_MOTOR_CONSTANTS.currentLimit);
 
-            backLeftMotor.follow(frontLeftMotor);
+        backLeftConfig.inverted(DriveConstants.BACK_LEFT_MOTOR_CONSTANTS.inverted);
+        backLeftConfig.smartCurrentLimit(DriveConstants.BACK_LEFT_MOTOR_CONSTANTS.currentLimit);
 
-            frontRightMotor =
-                    new CANSparkMax(DriveConstants.FRONT_RIGHT_MOTOR, MotorType.kBrushless);
-            backRightMotor = new CANSparkMax(DriveConstants.BACK_RIGHT_MOTOR, MotorType.kBrushless);
+        backLeftConfig.follow(frontLeftMotor);
 
-            frontRightMotor.setInverted(IntakeConstants.MOTOR_CONSTANTS.inverted);
-            frontRightMotor.setSmartCurrentLimit(IntakeConstants.MOTOR_CONSTANTS.currentLimit);
-            backRightMotor.setInverted(IntakeConstants.MOTOR_CONSTANTS.inverted);
-            backRightMotor.setSmartCurrentLimit(IntakeConstants.MOTOR_CONSTANTS.currentLimit);
+        frontLeftConfig.encoder.positionConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters));
+        frontLeftConfig.encoder.velocityConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters) / 60.0);
 
-            rightEncoder = frontRightMotor.getEncoder();
+        // Note how only the leader gets pid set
+        frontLeftConfig.closedLoop.pidf(
+            DriveConstants.PID_GAINS.kp,
+            DriveConstants.PID_GAINS.ki,
+            DriveConstants.PID_GAINS.kd,
+            DriveConstants.FEEDFORWARD_GAINS.kv);
 
-            rightEncoder.setPositionConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters));
-            rightEncoder.setVelocityConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters));
+        frontLeftMotor.configure(frontLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        backLeftMotor.configure(backLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-            rightPID = frontRightMotor.getPIDController();
+        leftEncoder = frontLeftMotor.getEncoder();
 
-            rightPID.setP(DriveConstants.FEEDBACK_REAL.kP);
-            rightPID.setI(DriveConstants.FEEDBACK_REAL.kI);
-            rightPID.setD(DriveConstants.FEEDBACK_REAL.kD);
-            rightPID.setFF(DriveConstants.FEEDFORWARD_REAL.kV);
+        leftPID = frontLeftMotor.getClosedLoopController();
 
-            backRightMotor.follow(frontRightMotor);
-        } else {
-            simLeft = new DCMotorSim(DCMotor.getNEO(2), 1, 1);
-            simRight = new DCMotorSim(DCMotor.getNEO(2), 1, 1);
+        frontRightMotor = new SparkMax(DriveConstants.FRONT_RIGHT_MOTOR, MotorType.kBrushless);
+        backRightMotor = new SparkMax(DriveConstants.BACK_RIGHT_MOTOR, MotorType.kBrushless);
 
-            simLeftFeedback =
-                    new PIDController(
-                            DriveConstants.FEEDBACK_SIM.kP,
-                            DriveConstants.FEEDBACK_SIM.kI,
-                            DriveConstants.FEEDBACK_SIM.kD);
-            simLeftFeedforward =
-                    new SimpleMotorFeedforward(
-                            DriveConstants.FEEDFORWARD_SIM.kS, DriveConstants.FEEDFORWARD_SIM.kV);
+        frontRightConfig = new SparkMaxConfig();
+        backRightConfig = new SparkMaxConfig();
 
-            simRightFeedback =
-                    new PIDController(
-                            DriveConstants.FEEDBACK_SIM.kP,
-                            DriveConstants.FEEDBACK_SIM.kI,
-                            DriveConstants.FEEDBACK_SIM.kD);
-            simRightFeedforward =
-                    new SimpleMotorFeedforward(
-                            DriveConstants.FEEDFORWARD_SIM.kS, DriveConstants.FEEDFORWARD_SIM.kV);
-        }
+        frontRightConfig.inverted(DriveConstants.FRONT_RIGHT_MOTOR_CONSTANTS.inverted);
+        frontRightConfig.smartCurrentLimit(DriveConstants.FRONT_RIGHT_MOTOR_CONSTANTS.currentLimit);
+
+        backRightConfig.inverted(DriveConstants.BACK_RIGHT_MOTOR_CONSTANTS.inverted);
+        backRightConfig.smartCurrentLimit(DriveConstants.BACK_RIGHT_MOTOR_CONSTANTS.currentLimit);
+
+        backRightConfig.follow(frontLeftMotor);
+
+        frontRightConfig.encoder.positionConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters));
+        frontRightConfig.encoder.velocityConversionFactor(DriveConstants.WHEEL_CIRCUMFERENCE.in(Meters) / 60.0);
+
+        frontRightConfig.closedLoop.pidf(
+            DriveConstants.PID_GAINS.kp,
+            DriveConstants.PID_GAINS.ki,
+            DriveConstants.PID_GAINS.kd,
+            DriveConstants.FEEDFORWARD_GAINS.kv);
+
+        frontRightMotor.configure(frontRightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        backRightMotor.configure(backRightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        rightEncoder = frontRightMotor.getEncoder();
+
+        rightPID = frontRightMotor.getClosedLoopController();
+
+        gyro = new Pigeon2(DriveConstants.GYRO_PORT);
+
+        odometry = new DifferentialDriveOdometry(new Rotation2d(), Meters.of(0), Meters.of(0));
+
+        frontLeftCurrent = Amps.mutable(0);
+        backLeftCurrent = Amps.mutable(0);
+        frontRightCurrent = Amps.mutable(0);
+        backRightCurrent = Amps.mutable(0);
+
+        leftSetpoint = MetersPerSecond.mutable(0);
+        leftVelocity = MetersPerSecond.mutable(0);
+
+        rightSetpoint = MetersPerSecond.mutable(0);
+        rightVelocity = MetersPerSecond.mutable(0);
+
+        leftPosition = Meters.mutable(0);
+        rightPosition = Meters.mutable(0);
+
+        leftAppliedVolts = Volts.mutable(0);
+        rightAppliedVolts = Volts.mutable(0);
+
+        simLeftPosition = Meters.mutable(0);
+        simRightPosition = Meters.mutable(0);
     }
 
     @Override
     public void periodic() {
-        if (isReal) {
-            // Log each motor's current and temperature individually in case of problems with a
-            // singluar
-            // motor
-            this.log("Front Left/Current", frontLeftMotor.getOutputCurrent());
-            this.log("Back Left/Current", backLeftMotor.getOutputCurrent());
-            this.log("Front Right/Current", frontRightMotor.getOutputCurrent());
-            this.log("Back Right/Current", backRightMotor.getOutputCurrent());
+        estimatedPose = odometry.update(gyro.getRotation2d(), leftPosition.in(Meters), rightPosition.in(Meters));
 
-            this.log("Front Left/Temperature", frontLeftMotor.getMotorTemperature());
-            this.log("Back Left/Temperature", backLeftMotor.getMotorTemperature());
-            this.log("Front Right/Temperature", frontRightMotor.getMotorTemperature());
-            this.log("Back Right/Temperature", backRightMotor.getMotorTemperature());
+        frontLeftCurrent.mut_setMagnitude(frontLeftMotor.getOutputCurrent());
+        backLeftCurrent.mut_setMagnitude(backLeftMotor.getOutputCurrent());
+        frontRightCurrent.mut_setMagnitude(frontRightMotor.getOutputCurrent());
+        backRightCurrent.mut_setMagnitude(backRightMotor.getOutputCurrent());
 
-            leftAppliedVolts = frontLeftMotor.getAppliedOutput() * frontLeftMotor.getBusVoltage();
-            rightAppliedVolts =
-                    frontRightMotor.getAppliedOutput() * frontRightMotor.getBusVoltage();
+        leftAppliedVolts.mut_setMagnitude(frontLeftMotor.getAppliedOutput() * frontLeftMotor.getBusVoltage());
+        rightAppliedVolts.mut_setMagnitude(frontRightMotor.getAppliedOutput() * frontRightMotor.getBusVoltage());
 
-            leftVelocity = leftEncoder.getVelocity();
-            rightVelocity = rightEncoder.getVelocity();
+        leftVelocity.mut_setMagnitude(leftEncoder.getVelocity());
+        rightVelocity.mut_setMagnitude(rightEncoder.getVelocity());
 
-            leftPosition = leftEncoder.getPosition();
-            rightPosition = rightEncoder.getPosition();
+        leftPosition.mut_setMagnitude(leftEncoder.getPosition());
+        rightPosition.mut_setMagnitude(rightEncoder.getPosition());
 
-            leftPID.setReference(leftSetpoint, ControlType.kVelocity);
-            rightPID.setReference(rightSetpoint, ControlType.kVelocity);
-        }
+        leftPID.setReference(leftSetpoint.in(MetersPerSecond), ControlType.kVelocity);
+        rightPID.setReference(rightSetpoint.in(MetersPerSecond), ControlType.kVelocity);
     }
 
     // Here's how you can do sim
     @Override
     public void simulationPeriodic() {
-        simLeft.update(RobotConstants.PERIODIC_LOOP.in(Seconds));
-        simRight.update(RobotConstants.PERIODIC_LOOP.in(Seconds));
+        leftVelocity.mut_replace(leftSetpoint);
+        rightVelocity.mut_replace(rightSetpoint);
 
-        this.log("leftCurrent", simLeft.getCurrentDrawAmps());
-        this.log("rightCurrent", simRight.getCurrentDrawAmps());
+        simLeftPosition.mut_plus(leftVelocity.in(MetersPerSecond) * RobotConstants.LOOP_TIME.in(Seconds), Meters);
+        simRightPosition.mut_plus(rightVelocity.in(MetersPerSecond) * RobotConstants.LOOP_TIME.in(Seconds), Meters);
 
-        leftVelocity = simLeft.getAngularVelocityRPM();
-        rightVelocity = simRight.getAngularVelocityRPM();
-
-        leftPosition = simLeft.getAngularPositionRotations();
-        rightPosition = simLeft.getAngularPositionRotations();
-
-        leftAppliedVolts =
-                simLeftFeedback.calculate(leftVelocity, leftSetpoint)
-                        + simLeftFeedforward.calculate(leftSetpoint);
-        rightAppliedVolts =
-                simRightFeedback.calculate(rightVelocity, rightSetpoint)
-                        + simRightFeedforward.calculate(rightSetpoint);
+        leftPosition.mut_replace(simLeftPosition);
+        rightPosition.mut_replace(simRightPosition);
     }
 
-    // =========================Velocity=========================
 
-    public void setVelocity(
-            Measure<Velocity<Distance>> leftVelocity, Measure<Velocity<Distance>> rightVelocity) {
-        leftSetpoint = leftVelocity.in(MetersPerSecond);
-        rightSetpoint = rightVelocity.in(MetersPerSecond);
+    private void setVelocity(
+            LinearVelocity leftVelocity, LinearVelocity rightVelocity) {
+        leftSetpoint.mut_replace(leftVelocity);
+        rightSetpoint.mut_replace(rightVelocity);
     }
 
-    public double[] getVelocity() {
-        return new double[] {leftVelocity, rightVelocity};
-    }
-
-    // =========================Position=========================
-
-    public double[] getPosition() {
-        return new double[] {leftPosition, rightPosition};
+    public Command driveCommand(DoubleSupplier leftStick, DoubleSupplier rightStick) {
+        return Commands.run(
+                        () ->
+                                this.setVelocity(
+                                        DriveConstants.MAX_VELOCITY.times(
+                                                MathUtil.applyDeadband(
+                                                                leftStick.getAsDouble(),
+                                                                RobotConstants.JOYSTICK_DEADZONE)),
+                                        DriveConstants.MAX_VELOCITY.times(
+                                                MathUtil.applyDeadband(
+                                                                rightStick.getAsDouble(),
+                                                                RobotConstants.JOYSTICK_DEADZONE))),
+                        this);
     }
 }

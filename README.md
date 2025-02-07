@@ -4,9 +4,15 @@
 
 Having conventions allows us to make clean, uniform code that integrates seamlessly, even if 5 different people made different parts. It also allows for people to become familiar with the code quicker and easier, as everything is nice and consistent. It also helps to reduce errors created by differing programming styles.
 
+## Disclaimer
+
+This is a living document. Programmers are expected to check for changes semi-regularly, as well as before making any pull requests.
+
 ## Style
 
 ### Naming
+
+<h4>In Code</h4>
 
 When naming things, use clear, concise names that describe what it represents. Someone should be able to look at it and instantly know what it does. Avoid making names unnecessarily long though. 
 
@@ -21,6 +27,18 @@ When creating a name for something, format it in accordance with this table:
 |Parameter|lowerCamelCase|
 |Constant|SCREAMING_CASE|
 
+<h4>Repositories</h4>
+
+In the case of naming repositories in the github organization, please capitalize the first letter of every word and use dashes for spaces. For robot repositories, the name should consist of the robot name then the year, with a dash in between. In the case that a robot name has not been created, the name of the game should be used until a name is made. Examples:
+
+- Generic-Repository
+- Reefscape-2025 (until a robot name is created)
+- RobotName-2025
+
+<h4>Branch Naming</h4>
+
+Branch names on git should contain **both** the name of the subsystem they are working with, as well as what stage in development it is (ex: InitialElevator)
+
 ### Ordering
 
 <h4>Methods</h4>
@@ -34,7 +52,7 @@ Triggers should be separated into two main sections marked by comment headers fo
 <h4>Constants</h4>
 
 Separate constants into different sub classes for each subsystem. Inside the subclass, things should generally be ordered as follows:
-1. Speeds
+1. Setpoints
 2. Control stuff (PID/FF, kinematics, etc.)
 3. Sensor stuff (conversion factors, etc.)
 4. General motor constants (current limit, inverted, etc.)
@@ -69,6 +87,12 @@ Whenever representing a value that has a unit, use WPILib's [unit library](https
 - Current: Amps
 - Voltage: Volts
 - Mass: Kilograms
+
+An exception to using unit library is rotation/angle, which we use Rotation2ds for, and positions, which we use Pose2ds for.
+
+## Command Factories
+
+When making commands, use the [command factory](https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html) framework.
 
 ## Example
 

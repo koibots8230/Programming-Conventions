@@ -23,39 +23,39 @@ import frc.robot.subsystems.Turret;
 @Logged
 public class RobotContainer {
 
-    @NotLogged private final CommandXboxController driveController = new CommandXboxController(0);
+  @NotLogged private final CommandXboxController driveController = new CommandXboxController(0);
 
-    private final TankDrive tankDrive;
-    private final Intake intake;
-    private final Indexer indexer;
-    private final Turret turret;
+  private final TankDrive tankDrive;
+  private final Intake intake;
+  private final Indexer indexer;
+  private final Turret turret;
 
-    public RobotContainer() {
-        tankDrive = new TankDrive();
-        intake = new Intake();
-        indexer = new Indexer();
-        turret = new Turret();
+  public RobotContainer() {
+    tankDrive = new TankDrive();
+    intake = new Intake();
+    indexer = new Indexer();
+    turret = new Turret();
 
-        configureBindings();
-    }
+    configureBindings();
+  }
 
-    private void configureBindings() {
-        tankDrive.setDefaultCommand(tankDrive.driveCommand(
-            driveController::getLeftY, driveController::getRightY));
+  private void configureBindings() {
+    tankDrive.setDefaultCommand(
+        tankDrive.driveCommand(driveController::getLeftY, driveController::getRightY));
 
-        Trigger intakeTrigger = driveController.axisGreaterThan(XboxController.Axis.kRightTrigger.value, 0.15);
-        intakeTrigger.onTrue(IntakeCommands.autoIntake(intake, indexer));
-        intakeTrigger.onFalse(Commands.parallel(
-            intake.setVelocityCommand(RPM.of(0)),
-            indexer.setVelocityCommand(RPM.of(0))
-        ));
+    Trigger intakeTrigger =
+        driveController.axisGreaterThan(XboxController.Axis.kRightTrigger.value, 0.15);
+    intakeTrigger.onTrue(IntakeCommands.autoIntake(intake, indexer));
+    intakeTrigger.onFalse(
+        Commands.parallel(
+            intake.setVelocityCommand(RPM.of(0)), indexer.setVelocityCommand(RPM.of(0))));
 
-        Trigger moveTurret = driveController.a();
-        moveTurret.onTrue(turret.setPositionCommand(TurretConstants.POSITION_TWO));
-        moveTurret.onFalse(turret.setPositionCommand(TurretConstants.POSITION_ONE));
-    }
+    Trigger moveTurret = driveController.a();
+    moveTurret.onTrue(turret.setPositionCommand(TurretConstants.POSITION_TWO));
+    moveTurret.onFalse(turret.setPositionCommand(TurretConstants.POSITION_ONE));
+  }
 
-    public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
-    }
+  public Command getAutonomousCommand() {
+    return Commands.print("No autonomous command configured");
+  }
 }

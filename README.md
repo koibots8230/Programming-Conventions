@@ -2,7 +2,7 @@
 
 ## Why Conventions?
 
-Having conventions allows us to make clean, uniform code that integrates seamlessly, even if 5 different people made different parts. It also allows for people to become familiar with the code quicker and easier, as everything is nice and consistent. It also helps to reduce errors created by differing programming styles.
+Having conventions allows us to make clean, uniform code that integrates seamlessly, even if 5 different people made different parts. It also allows for people to become familiar with the code quicker and easier, as everything is nice and consistent, along with helping to reduce errors created by differing programming styles.
 
 ## Disclaimer
 
@@ -14,9 +14,9 @@ This is a living document. Programmers are expected to check for changes semi-re
 
 <h4>In Code</h4>
 
-When naming things, use clear, concise names that describe what it represents. Someone should be able to look at it and instantly know what it does. Avoid making names unnecessarily long though. 
+When naming things, use clear, concise names that describe what it represents. Someone should be able to look at it and instantly know what it does. Avoid making names unnecessarily long however. 
 
-Do not use prefixes when naming variables. Oftentimes they are simply unnecessary, and if it gets confusing, use this.variable to specify member variables.
+Do not use prefixes when naming variables. In our case they are unnecessary the vast majority of the time, and if it gets confusing, use this.variable to specify member variables.
 
 When creating a name for something, format it in accordance with this table:
 |Thing|How to Format|
@@ -37,21 +37,32 @@ In the case of naming repositories in the github organization, please capitalize
 
 <h4>Branch Naming</h4>
 
-Branch names on git should contain **both** the name of the subsystem they are working with, as well as what stage in development it is (ex: InitialElevator)
+Branch names on git should contain **both** the name of the subsystem they are working with, as well as what stage in development it is in UpperCamelCase (ex: InitialElevator)
 
 ### Ordering
 
 <h4>Methods</h4>
 
-Group methods together based on what they interact with (i.e. group getVelocity() and setVelocity() together), and separate groups with comment headers.
+Group methods together based on what they interact with (i.e. group getVelocity() and setVelocity() together). If there is a large number of methods, seperate groups using comment headers. Example:
+```java
+// ================Section================
+
+private void method() {}
+
+private voice method2() {}
+
+// ================Section 2================
+
+private void method3() {}
+```
 
 <h4>Triggers</h4>
 
-Triggers should be separated into two main sections marked by comment headers for each of the two controllers. Place related triggers near each other within each section (i.e. if you have two different shoot triggers, place those near one another). Beyond that, just maintain a logical order for the triggers.
+Triggers should be separated into two main sections marked by comment headers for each controller. Place related triggers near each other within each section (i.e. if you have two different shoot triggers, place those near one another). Beyond that, just maintain a logical order for the triggers.
 
 <h4>Constants</h4>
 
-Separate constants into different sub classes for each subsystem. Inside the subclass, things should generally be ordered as follows:
+Separate constants into different sub classes for each subsystem inside of Constants.java (ex: IntakeConstants). Inside the subclass, things should generally be ordered as follows:
 1. Setpoints
 2. Control stuff (PID/FF, kinematics, etc.)
 3. Sensor stuff (conversion factors, etc.)
@@ -59,11 +70,11 @@ Separate constants into different sub classes for each subsystem. Inside the sub
 5. Physical attributes of the subsystem (wheel size, etc.)
 6. Ports
 
-Subclasses should be ordered in some logical manner. Additionally, there will be a RobotConstants sub class for universal robot values (clock speed, logging stuff, etc.).
+Subclasses should be ordered in some logical manner. Additionally, there should be a RobotConstants sub class for universal robot values (clock speed, logging stuff, etc.).
 
 ### Comments
 
-General rule of thumb, don't use comments. Your code should be able to explain itself. If you have some complicated math thing or other, fine. Otherwise, avoid comments
+General rule of thumb, don't use comments. Your code should be able to explain itself if it is properly named and organized. If you have some complicated math thing or other, fine. Otherwise, avoid comments
 
 ## Misc.
 
@@ -73,7 +84,7 @@ Dependency injection is a technique where one object receives its dependencies f
 
 ### Units & Units Library
 
-Whenever representing a value that has a unit, use WPILib's [unit library](https://docs.wpilib.org/en/stable/docs/software/basic-programming/java-units.html). In general, use the following units when representing things:
+Whenever representing a value that has a unit associated, use WPILib's [unit library](https://docs.wpilib.org/en/stable/docs/software/basic-programming/java-units.html). In general, use the following units when representing things:
 
 - Distance: Meters
 - Angle/Rotation: Radians
